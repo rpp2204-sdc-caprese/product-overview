@@ -1,3 +1,3 @@
-export default function Hello() {
+default export function Hello() {
   return "Hello World";
   }
