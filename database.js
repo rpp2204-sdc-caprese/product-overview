@@ -13,10 +13,26 @@ function Query(id, res){
 
   client.connect();
 
-  client.query("select * from product where id=" + id, (err, response) => {
+  client.query("SELECT * FROM product INNER JOIN features ON features.product_id = product.id WHERE product.id = " + id, (err, response) => {
     if(!err){
-      console.log(response);
-      res.send(response.rows[0])
+      const {name, slogan, description, category, default_price, product_id} = response.rows[0];
+      const product = {
+        "id": product_id,
+        "name": name,
+        "slogan": slogan,
+        "description": description,
+        "category": category,
+        "default_price": default_price,
+        "features": []
+
+      }
+      product.features = response.rows.map((row) => {
+        return {
+          "feature": row.feature,
+          "value": row.value
+        }
+      })
+      res.send(product);
     } else {
       console.log(err);
       res.send('Sorry Charlie, there was an error')
