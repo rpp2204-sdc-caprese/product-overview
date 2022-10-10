@@ -4,8 +4,12 @@
 
   app.use(express.json());
 
-  app.get('/', (req, res) => {
-    Query(req.query.product_id, res);
+  app.get('/products/:productId', (req, res) => {
+    Query.getProductInfo(req.params.productId, res);
+  })
+
+  app.get('/products/', (req, res) => {
+    Query.getProducts(res);
   })
 
   app.listen(3000, () => {
