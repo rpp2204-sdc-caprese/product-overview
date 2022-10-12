@@ -16,6 +16,10 @@
     Query.getStyles(req.params.productId, res);
   })
 
+  app.get('/products/:productId/related', (req, res) => {
+    Query.getRelated(req.params.productId, res);
+  })
+
   app.listen(3000, () => {
     console.log('Now listening on port 3000...')
   })

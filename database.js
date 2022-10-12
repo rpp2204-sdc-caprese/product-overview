@@ -1,7 +1,7 @@
 const { Client } = require('pg');
 
 const credentials = {
-  user: "postgres",
+  user: "TRiPP",
   host: "localhost",
   database: "products",
   password: "Post*1337",
@@ -61,32 +61,83 @@ const Query = {
 
     client.connect();
 
-    client.query("SELECT s.styleId, s.size, s.quantity, sty.name, sty.original_price, sty.sale_price, p.thumbnail_url, p.url FROM skus s JOIN styles sty ON s.styleId = sty.productId JOIN photos p ON p.styleId = sty.productId WHERE p.styleId = " + id, (err, response) => {
+    client.query("SELECT s.styleId, s.size, s.quantity, sty.name, sty.original_price, sty.sale_price, default_style, sty.id, p.thumbnail_url, p.url FROM skus s JOIN styles sty ON s.styleId = sty.productId JOIN photos p ON p.styleId = sty.productId WHERE p.styleId = " + id, (err, response) => {
       if(!err){
-        // const {name, slogan, description, category, default_price, product_id} = response.rows[0];
-        // const product = {
-        //   "id": product_id,
-        //   "name": name,
-        //   "slogan": slogan,
-        //   "description": description,
-        //   "category": category,
-        //   "default_price": default_price,
-        //   "features": []
+        const {name, slogan, description, category, default_price, styleId, id} = response.rows[0];
+        const product = {
+          "product_id": id,
+          "results": []
+        }
 
-        // }
-        // product.features = response.rows.map((row) => {
-        //   return {
-        //     "feature": row.feature,
-        //     "value": row.value
-        //   }
-        // })
-        res.send(response.rows);
+        const productStyles = {
+          "syle_id": id,
+          "name": name,
+          "original_price": slogan,
+          "sale_price": description,
+          "default?": category,
+          "photos": [],
+          "skus": []
+        }
+
+        const allStyles = {};
+
+        response.rows.map((row) => {
+          const {id} = row;
+          if(allStyles[row.id] === undefined){
+            allStyles[row.id] = {
+              "syle_id": row.id,
+              "name": row.name,
+              "original_price": row.original_price,
+              "sale_price": row.sale_price,
+              "default?": row.default_style,
+              "photos": [{
+                "thumbnail_url": row.thumbnail_url,
+                "url": row.url
+              }],
+              "skus": [{
+                id: {
+                  "quantity": row.quantity,
+                  "size": row.size
+                }
+              }]
+            }
+          } else {
+            allStyles[row.id].photos.push({
+              "thumbnail_url": row.thumbnail_url,
+              "url": row.url
+            })
+            allStyles[row.id].skus.push({
+                id: {
+                  "quantity": row.quantity,
+                  "size": row.size
+                }
+              })
+          }
+        })
+
+        res.send(allStyles);
       } else {
         console.log(err);
         res.send('Sorry Charlie, there was an error')
       }
       client.end();
     });
+  },
+  getRelated: function(id, res){
+    const client = new Client(credentials);
+
+    client.connect();
+
+    client.query('SELECT * FROM related WHERE current_id = ' + id, (err, response) => {
+      if(!err){
+        res.send(response.rows.map((relatedProduct) => {
+          return relatedProduct.related_product_id;
+        }));
+      } else {
+        console.log(err);
+        res.send('Sorry Charlie, there was an error')
+      }
+    })
   }
 }
 
