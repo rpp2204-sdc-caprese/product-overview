@@ -1,7 +1,7 @@
 const { Client } = require('pg');
 
 const credentials = {
-  user: "TRiPP",
+  user: "postgres",
   host: "localhost",
   database: "products",
   password: "Post*1337",
@@ -56,66 +56,72 @@ const Query = {
       client.end();
     });
   },
-  getStyles: function(id, res){
+  getStyles: function(product_number, res){
     const client = new Client(credentials);
 
     client.connect();
 
-    client.query("SELECT s.styleId, s.size, s.quantity, sty.name, sty.original_price, sty.sale_price, default_style, sty.id, p.thumbnail_url, p.url FROM skus s JOIN styles sty ON s.styleId = sty.productId JOIN photos p ON p.styleId = sty.productId WHERE p.styleId = " + id, (err, response) => {
+    client.query("SELECT s.id, s.styleId, s.size, s.quantity, sty.name, sty.original_price, sty.sale_price, sty.style, p.thumbnail_url, p.url FROM skus s JOIN styles sty ON s.styleId = sty.id JOIN photos p ON p.styleId = s.styleId  WHERE sty.productId = " + product_number, (err, response) => {
       if(!err){
-        const {name, slogan, description, category, default_price, styleId, id} = response.rows[0];
-        const product = {
-          "product_id": id,
+        const products = {
+          "product_id": product_number,
           "results": []
         }
 
-        const productStyles = {
-          "syle_id": id,
-          "name": name,
-          "original_price": slogan,
-          "sale_price": description,
-          "default?": category,
-          "photos": [],
-          "skus": []
-        }
+        // const productStyles = {
+        //   "syle_id": id,
+        //   "name": name,
+        //   "original_price": original_price,
+        //   "sale_price": description,
+        //   "default?": style,
+        //   "photos": [],
+        //   "skus": []
+        // }
 
         const allStyles = {};
 
         response.rows.map((row) => {
-          const {id} = row;
-          if(allStyles[row.id] === undefined){
-            allStyles[row.id] = {
-              "syle_id": row.id,
-              "name": row.name,
-              "original_price": row.original_price,
-              "sale_price": row.sale_price,
-              "default?": row.default_style,
+          const {id, name, original_price, productId, sale_price, style, styleid, thumbnail_url, url, quantity, size} = row;
+          if(allStyles[styleid] === undefined){
+            allStyles[styleid] = {
+              "style_id": styleid,
+              "name": name,
+              "original_price": original_price,
+              "sale_price": sale_price,
+              "default?": style,
               "photos": [{
-                "thumbnail_url": row.thumbnail_url,
-                "url": row.url
+                "thumbnail_url": thumbnail_url,
+                "url": url
               }],
-              "skus": [{
-                id: {
-                  "quantity": row.quantity,
-                  "size": row.size
+              "skus": {
+                [id]: {
+                  "quantity": quantity,
+                  "size": size
                 }
-              }]
+              }
             }
-          } else {
-            allStyles[row.id].photos.push({
-              "thumbnail_url": row.thumbnail_url,
-              "url": row.url
-            })
-            allStyles[row.id].skus.push({
-                id: {
-                  "quantity": row.quantity,
-                  "size": row.size
-                }
+          } else if (allStyles[styleid].skus[id] === undefined) {
+            allStyles[styleid].skus[id] = {
+                  "quantity": quantity,
+                  "size": size
+              }
+              allStyles[styleid].photos.push({
+                "thumbnail_url": thumbnail_url,
+                "url": url
               })
+          } else {
+            allStyles[styleid].skus[id] = {
+              "quantity": quantity,
+              "size": size
+            }
           }
         })
 
-        res.send(allStyles);
+        for(let productStyle in allStyles){
+          products.results.push(allStyles[productStyle]);
+        }
+
+        res.send(products);
       } else {
         console.log(err);
         res.send('Sorry Charlie, there was an error')
