@@ -134,7 +134,7 @@ const Query = {
 
     client.connect();
 
-    client.query('SELECT * FROM related WHERE current_id = ' + id, (err, response) => {
+    client.query('SELECT * FROM related WHERE current_product_id = ' + id, (err, response) => {
       if(!err){
         res.send(response.rows.map((relatedProduct) => {
           return relatedProduct.related_product_id;
