@@ -48,10 +48,14 @@ const Query = {
 
     client.query("SELECT * FROM product LIMIT 10;", (err, response) => {
       if(!err){
-        res.send(response.rows);
+        let products = response.rows;
+        for(let i = 0; i < products.length; i++){
+          products[i].default_price = products[i].default_price.toString() + ".00";
+        }
+        res.send(products);
       } else {
         console.log(err);
-        res.send('Sorry Charlie, there was an error')
+        res.statusCode(200).send('Sorry Charlie, there was an error')
       }
       client.end();
     });
@@ -81,12 +85,20 @@ const Query = {
         const allStyles = {};
 
         response.rows.map((row) => {
-          const {id, name, original_price, productId, sale_price, style, styleid, thumbnail_url, url, quantity, size} = row;
+          let {id, name, original_price, productId, sale_price, style, styleid, thumbnail_url, url, quantity, size} = row;
           if(allStyles[styleid] === undefined){
+            if(sale_price === "null"){
+              sale_price = null;
+            }
+          if(style === 0){
+            style = false
+          } else {
+            style = true
+          }
             allStyles[styleid] = {
               "style_id": styleid,
               "name": name,
-              "original_price": original_price,
+              "original_price": original_price.toString() + ".00",
               "sale_price": sale_price,
               "default?": style,
               "photos": [{
