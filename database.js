@@ -1,18 +1,20 @@
 const { Client } = require('pg');
+require("dotenv").config();
 
 const credentials = {
-  user: "postgres",
-  host: "localhost",
-  database: "products",
-  password: "Post*1337",
-  port: 5432
+  user: process.env.USERNAME,
+  host: process.env.HOST,
+  database: process.env.DATABASE,
+  password: process.env.PASSWORD,
+  port: process.env.PGPORT
 };
+
+const client = new Client(credentials);
+
+client.connect();
 
 const Query = {
   getProductInfo: function(id, res){
-    const client = new Client(credentials);
-
-    client.connect();
 
     client.query("SELECT * FROM product INNER JOIN features ON features.product_id = product.id WHERE product.id = " + id, (err, response) => {
       if(!err){
@@ -38,13 +40,9 @@ const Query = {
         console.log(err);
         res.send('Sorry Charlie, there was an error')
       }
-      client.end();
     });
   },
   getProducts: function(res){
-    const client = new Client(credentials);
-
-    client.connect();
 
     client.query("SELECT * FROM product LIMIT 10;", (err, response) => {
       if(!err){
@@ -57,13 +55,9 @@ const Query = {
         console.log(err);
         res.statusCode(200).send('Sorry Charlie, there was an error')
       }
-      client.end();
     });
   },
   getStyles: function(product_number, res){
-    const client = new Client(credentials);
-
-    client.connect();
 
     client.query("SELECT s.id, s.styleId, s.size, s.quantity, sty.name, sty.original_price, sty.sale_price, sty.style, p.thumbnail_url, p.url FROM skus s JOIN styles sty ON s.styleId = sty.id JOIN photos p ON p.styleId = s.styleId  WHERE sty.productId = " + product_number, (err, response) => {
       if(!err){
@@ -138,13 +132,9 @@ const Query = {
         console.log(err);
         res.send('Sorry Charlie, there was an error')
       }
-      client.end();
     });
   },
   getRelated: function(id, res){
-    const client = new Client(credentials);
-
-    client.connect();
 
     client.query('SELECT * FROM related WHERE current_product_id = ' + id, (err, response) => {
       if(!err){
