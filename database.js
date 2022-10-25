@@ -1,6 +1,5 @@
 const { Client } = require('pg');
 require("dotenv").config();
-
 const credentials = {
   user: process.env.USERNAME,
   host: process.env.HOST,
@@ -47,13 +46,13 @@ const Query = {
     client.query("SELECT * FROM product LIMIT 10;", (err, response) => {
       if(!err){
         let products = response.rows;
-        for(let i = 0; i < products.length; i++){
-          products[i].default_price = products[i].default_price.toString() + ".00";
-        }
+        // for(let i = 0; i < products.length; i++){
+        //   products[i].default_price = products[i].default_price.toString() + ".00";
+        // }
         res.send(products);
       } else {
         console.log(err);
-        res.statusCode(200).send('Sorry Charlie, there was an error')
+        res.statusCode(500).send('Sorry Charlie, there was an error')
       }
     });
   },
