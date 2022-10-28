@@ -46,9 +46,9 @@ const Query = {
     client.query("SELECT * FROM product LIMIT 10;", (err, response) => {
       if(!err){
         let products = response.rows;
-        // for(let i = 0; i < products.length; i++){
-        //   products[i].default_price = products[i].default_price.toString() + ".00";
-        // }
+        for(let i = 0; i < products.length; i++){
+          products[i].default_price = products[i].default_price.toString() + ".00";
+        }
         res.send(products);
       } else {
         console.log(err);
@@ -76,6 +76,7 @@ const Query = {
         // }
 
         const allStyles = {};
+        const allPhotos = {};
 
         response.rows.map((row) => {
           let {id, name, original_price, productId, sale_price, style, styleid, thumbnail_url, url, quantity, size} = row;
@@ -105,16 +106,23 @@ const Query = {
                 }
               }
             }
+
+            allPhotos[thumbnail_url] = thumbnail_url;
+
           } else if (allStyles[styleid].skus[id] === undefined) {
             allStyles[styleid].skus[id] = {
                   "quantity": quantity,
                   "size": size
               }
-              allStyles[styleid].photos.push({
-                "thumbnail_url": thumbnail_url,
-                "url": url
-              })
           } else {
+            if(allPhotos[thumbnail_url] === undefined){
+              allStyles[styleid].photos.push({
+                url: url,
+                thumbnail_url: thumbnail_url
+              })
+              allPhotos[thumbnail_url] = thumbnail_url;
+            }
+
             allStyles[styleid].skus[id] = {
               "quantity": quantity,
               "size": size
@@ -147,7 +155,6 @@ const Query = {
     })
   }
 }
-
 
 module.exports = Query;
 

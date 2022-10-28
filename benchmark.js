@@ -5,20 +5,30 @@ export const options = {
   scenarios: {
     constant_request_rate: {
       executor: 'constant-arrival-rate',
-      rate: 100,
+      rate: 1000,
       timeUnit: '1s',
-      duration: '10s',
-      preAllocatedVUs: 100,
-      maxVUs: 200,
+      duration: '60s',
+      preAllocatedVUs: 10,
+      maxVUs: 100,
     },
   },
   discardResponseBodies: true
 };
 
+// export const options = {
+//   discardResponseBodies: true,
+//   scenarios: {
+//     contacts: {
+//       executor: 'constant-vus',
+//       vus: 130,
+//       duration: '10s',
+//     },
+//   },
+// };
+
 export default function () {
-  const res = http.get('http://localhost:3000/products/');
+  const res = http.get('http://localhost:3000/products/1/related');
   check(res, {
     'is status 200': (r) => r.status === 200,
   });
-  sleep(0.5);
 }
